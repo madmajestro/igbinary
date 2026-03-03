@@ -44,7 +44,7 @@ else
 	PHP_TAR_URL=https://www.php.net/distributions/$PHP_TAR_FILE
 fi
 if [ ! -f $PHP_TAR_FILE ]; then
-	curl --location --verbose --http1.1 $PHP_TAR_URL -o $PHP_TAR_FILE
+	curl --location --verbose --no-parallel $PHP_TAR_URL -o $PHP_TAR_FILE
 fi
 
 tar xjf $PHP_TAR_FILE
