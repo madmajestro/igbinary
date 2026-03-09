@@ -1562,17 +1562,17 @@ zend_always_inline static int igbinary_serialize_array_ref(struct igbinary_seria
 	return 0;
 }
 /* }}} */
-/* {{{ igbinary_serialize_array_sleep_single_prop_value */
-/** Serializes one value of an object's properties array, for use with the __sleep function. */
-inline static int igbinary_serialize_array_sleep_single_prop_value(struct igbinary_serialize_data *igsd, zval *z, zval *v, zend_class_entry *ce, zend_string *prop_name) {
+/* {{{ igbinary_serialize_array_sleep_single_prop */
+/** Serializes one key+value of an object's properties array, for use with the __sleep function. */
+inline static int igbinary_serialize_array_sleep_single_prop(struct igbinary_serialize_data *igsd, zval *z, zval *v, zend_class_entry *ce, zend_string *prop_name, zend_string *mangled_prop_name) {
 	/* Precondition: All args are non-null */
 	if (Z_TYPE_P(v) == IS_INDIRECT) {
 		v = Z_INDIRECT_P(v);
 		if (UNEXPECTED(Z_TYPE_P(v) == IS_UNDEF)) {
 #if PHP_VERSION_ID >= 70400
 			if (UNEXPECTED(zend_get_typed_property_info_for_slot(Z_OBJ_P(z), v) != NULL)) {
-				zend_throw_error(NULL, "Typed property %s::$%s must not be accessed before initialization (in __sleep)", ZSTR_VAL(ce->name), ZSTR_VAL(prop_name));
-				return 1;
+				//zend_throw_error(NULL, "Typed property %s::$%s must not be accessed before initialization (in __sleep)", ZSTR_VAL(ce->name), ZSTR_VAL(prop_name));
+				return igbinary_serialize_null(igsd);
 			}
 #endif
 			goto serialize_untyped_uninitialized_prop;
@@ -1580,10 +1580,16 @@ inline static int igbinary_serialize_array_sleep_single_prop_value(struct igbina
 	} else {
 		if (UNEXPECTED(Z_TYPE_P(v) == IS_UNDEF)) {
 serialize_untyped_uninitialized_prop:
+#if PHP_VERSION_ID >= 80000
+			php_error_docref(NULL, E_WARNING, "\"%s\" returned as member variable from __sleep() but does not exist", ZSTR_VAL(prop_name));
+#else
 			php_error_docref(NULL, E_NOTICE, "\"%s\" returned as member variable from __sleep() but does not exist", ZSTR_VAL(prop_name));
+#endif
 			return igbinary_serialize_null(igsd);
 		}
 	}
+
+	RETURN_1_IF_NON_ZERO(igbinary_serialize_string(igsd, mangled_prop_name));
 	return igbinary_serialize_zval(igsd, v);
 }
 /* }}} */
@@ -1609,9 +1615,7 @@ inline static int igbinary_serialize_array_sleep_inner(struct igbinary_serialize
 		zend_string *prop_name = Z_STR_P(d);
 
 		if ((v = zend_hash_find(object_properties, prop_name)) != NULL) {
-			RETURN_1_IF_NON_ZERO(igbinary_serialize_string(igsd, prop_name));
-
-			RETURN_1_IF_NON_ZERO(igbinary_serialize_array_sleep_single_prop_value(igsd, z, v, ce, prop_name));
+			RETURN_1_IF_NON_ZERO(igbinary_serialize_array_sleep_single_prop(igsd, z, v, ce, prop_name, prop_name));
 		} else {
 			zend_string *mangled_prop_name;
 
@@ -1634,7 +1638,12 @@ inline static int igbinary_serialize_array_sleep_inner(struct igbinary_serialize
 				if (v == NULL) {
 					zend_string_efree(mangled_prop_name);
 
+#if PHP_VERSION_ID >= 80000
+					php_error_docref(NULL, E_WARNING, "\"%s\" returned as member variable from __sleep() but does not exist", ZSTR_VAL(prop_name));
+#else
 					php_error_docref(NULL, E_NOTICE, "\"%s\" returned as member variable from __sleep() but does not exist", ZSTR_VAL(prop_name));
+#endif
+
 					RETURN_1_IF_NON_ZERO(igbinary_serialize_string(igsd, prop_name));
 
 					RETURN_1_IF_NON_ZERO(igbinary_serialize_null(igsd));
@@ -1643,12 +1652,11 @@ inline static int igbinary_serialize_array_sleep_inner(struct igbinary_serialize
 				}
 			}
 
-			res = igbinary_serialize_string(igsd, mangled_prop_name);
+			res = igbinary_serialize_array_sleep_single_prop(igsd, z, v, ce, prop_name, mangled_prop_name);
 			/* igbinary_serialize_string will increase the reference count. */
 			zend_string_release_ex(mangled_prop_name, 0);
 
 			RETURN_1_IF_NON_ZERO(res);
-			RETURN_1_IF_NON_ZERO(igbinary_serialize_array_sleep_single_prop_value(igsd, z, v, ce, prop_name));
 		}
 	} ZEND_HASH_FOREACH_END();
 

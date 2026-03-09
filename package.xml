@@ -104,6 +104,8 @@ memcached or similar memory based storages for serialized data.</description>
     <file name="__serialize_024.phpt" role="test" />
     <file name="__serialize_025.phpt" role="test" />
     <file name="__serialize_026.phpt" role="test" />
+    <file name="__serialize_027.phpt" role="test" />
+    <file name="__serialize_027_php8.phpt" role="test" />
     <file name="igbinary_001.phpt" role="test" />
     <file name="igbinary_002.phpt" role="test" />
     <file name="igbinary_003.phpt" role="test" />
