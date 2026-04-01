@@ -181,6 +181,7 @@ memcached or similar memory based storages for serialized data.</description>
     <file name="igbinary_063_php72.phpt" role="test" />
     <file name="igbinary_064.phpt" role="test" />
     <file name="igbinary_065.phpt" role="test" />
+    <file name="igbinary_065_php8.phpt" role="test" />
     <file name="igbinary_066.phpt" role="test" />
     <file name="igbinary_067.phpt" role="test" />
     <file name="igbinary_068.phpt" role="test" />

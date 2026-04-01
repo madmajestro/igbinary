@@ -3,7 +3,7 @@ Don't emit zval has unknown type 0 (IS_UNDEF)
 --SKIPIF--
 <?php
 if (!extension_loaded("igbinary")) print "skip";
-if (PHP_VERSION_ID >= 80000) die("skip error message different in php >= 8");
+if (PHP_VERSION_ID < 80000) die("skip error message different in php < 8");
 ?>
 --INI--
 error_reporting=E_ALL & ~E_DEPRECATED
@@ -46,12 +46,12 @@ echo "\n";
 --EXPECTF--
 PHP behavior:
 
-Notice: serialize(): "x" returned as member variable from __sleep() but does not exist in %s on line %d
+Warning: serialize(): "x" returned as member variable from __sleep() but does not exist in %s on line %d
 
-Notice: serialize(): "y" returned as member variable from __sleep() but does not exist in %s on line %d
+Warning: serialize(): "y" returned as member variable from __sleep() but does not exist in %s on line %d
 
-Notice: serialize(): "z" returned as member variable from __sleep() but does not exist in %s on line %d
-O:7:\"MyClass\":6:{s:4:\"kept\";i:2;s:1:\"x\";N;s:1:\"y\";N;s:1:\"z\";N;s:6:\"\0*\0set\";s:6:\"setVal\";s:13:\"\0MyClass\0priv\";N;}
+Warning: serialize(): "z" returned as member variable from __sleep() but does not exist in %s on line %d
+O:7:\"MyClass\":3:{s:4:\"kept\";i:2;s:6:\"\0*\0set\";s:6:\"setVal\";s:13:\"\0MyClass\0priv\";N;}
 MyClass::__set_state(array(
    'kept' => 2,
    'x' => NULL,
@@ -63,11 +63,11 @@ MyClass::__set_state(array(
 ))
 Igbinary behavior:
 
-Notice: igbinary_serialize(): "x" returned as member variable from __sleep() but does not exist in %s on line %d
+Warning: igbinary_serialize(): "x" returned as member variable from __sleep() but does not exist in %s on line %d
 
-Notice: igbinary_serialize(): "y" returned as member variable from __sleep() but does not exist in %s on line %d
+Warning: igbinary_serialize(): "y" returned as member variable from __sleep() but does not exist in %s on line %d
 
-Notice: igbinary_serialize(): "z" returned as member variable from __sleep() but does not exist in %s on line %d
+Warning: igbinary_serialize(): "z" returned as member variable from __sleep() but does not exist in %s on line %d
 0000000217074d79436c617373140611046b65707406020000001106002a00736574110673657456616c110d004d79436c617373007072697600
 MyClass::__set_state(array(
    'kept' => 2,
