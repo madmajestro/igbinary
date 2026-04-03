@@ -3,7 +3,7 @@ Test serializing wrong values in __sleep
 --SKIPIF--
 <?php
 if (!extension_loaded("igbinary")) print "skip";
-if (PHP_VERSION_ID >= 80000) die("skip error message different in php >= 8");
+if (PHP_VERSION_ID < 80000) die("skip error message different in php < 8");
 ?>
 --INI--
 error_reporting=E_ALL & ~E_DEPRECATED
@@ -26,11 +26,11 @@ var_dump($unser);
 
 ?>
 --EXPECTF--
-Notice: igbinary_serialize(): "name0" returned as member variable from __sleep() but does not exist in %s on line 12
+Warning: igbinary_serialize(): "name0" returned as member variable from __sleep() but does not exist in %s on line 12
 
-Notice: igbinary_serialize(): "name1" returned as member variable from __sleep() but does not exist in %s on line 12
+Warning: igbinary_serialize(): "name1" returned as member variable from __sleep() but does not exist in %s on line 12
 
-Notice: igbinary_serialize(): "name2" returned as member variable from __sleep() but does not exist in %s on line 12
+Warning: igbinary_serialize(): "name2" returned as member variable from __sleep() but does not exist in %s on line 12
 \x00\x00\x00\x02\x17\x01X\x14\x03\x11\x05name0\x00\x11\x05name1\x00\x11\x05name2\x00
 object(X)#2 (3) {
   ["name0"]=>
