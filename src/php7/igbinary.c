@@ -2878,6 +2878,10 @@ inline static int igbinary_unserialize_object_properties(struct igbinary_unseria
 				/* This is a declared object property */
 				prototype_value = Z_INDIRECT_P(prototype_value);
 #if PHP_VERSION_ID >= 70400
+				/* If the fallback above set `info` from properties_info,
+				 * override it here with the typed-property variant — the
+				 * type-source registration and ref-assignability check below
+				 * need that flavour (returns NULL for non-typed properties). */
 				info = zend_get_typed_property_info_for_slot(Z_OBJ_P(z_deref), prototype_value);
 				if (info) {
 					if (Z_ISREF_P(prototype_value)) {
