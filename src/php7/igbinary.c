@@ -2862,7 +2862,7 @@ inline static int igbinary_unserialize_object_properties(struct igbinary_unseria
 				if ((info->flags & ZEND_ACC_VIRTUAL)) {
 					php_error_docref(NULL, E_WARNING,
 						"Cannot unserialize value for virtual property %s::$%s",
-						ZSTR_VAL(info->ce->name), ZSTR_VAL(key_str));
+						ZSTR_VAL(info->ce->name), unmangled_prop);
 					zend_string_release(key_str);
 					return 1;
 				}
