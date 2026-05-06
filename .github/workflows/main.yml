@@ -15,6 +15,35 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
+  common:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout igbinary
+        uses: actions/checkout@v6
+      - name: Test that package.xml is valid
+        run: pecl package
+  ubuntu:
+    strategy:
+      matrix:
+        version: [ "7.0", "7.1", "7.2", "7.3", "7.4", "8.0", "8.1", "8.2", "8.3", "8.4", "8.5", "8.6" ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout igbinary
+        uses: actions/checkout@v6
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{matrix.version}}
+      - name: phpize
+        run: phpize
+      - name: configure
+        run: ./configure
+      - name: make
+        run: make
+      - name: test
+        run: |
+          make test TESTS="--show-diff tests"
+
   # This workflow contains a single job called "build"
   build:
     # The type of runner that the job will run on
