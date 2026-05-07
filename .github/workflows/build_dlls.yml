@@ -31,8 +31,6 @@ jobs:
   release:
     if: ${{ github.event_name == 'release' }}
     needs: windows
-    permissions:
-      contents: write
     runs-on: ubuntu-latest
     steps:
       - name: Upload artifacts to the release
