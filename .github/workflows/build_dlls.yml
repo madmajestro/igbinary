@@ -19,7 +19,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
       # php-windows-builder handles building, testing and artifact packaging/upload automatically
-      - name: Build the extension
+      - name: Build and test the extension
         uses: php/php-windows-builder/extension@v1
         with:
           php-version: ${{ matrix.php-version }}
@@ -28,7 +28,9 @@ jobs:
           args: --enable-igbinary --enable-debug-pack
           run-tests: true
           test-runner-args: "--show-diff tests"
-  release:
+
+  # Upload *.zip files with prebuild Windows binaries needed by the PIE installer to the release
+  release_pie:
     if: ${{ github.event_name == 'release' }}
     needs: windows
     runs-on: ubuntu-latest
@@ -38,3 +40,19 @@ jobs:
         with:
           release: ${{ github.event.release.tag_name }}
           token: ${{ secrets.GITHUB_TOKEN }}
+
+  # Create and upload the *.tgz file needed for PECL to the release
+  release_pecl:
+    if: ${{ github.event_name == 'release' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Create pecl upload file
+        run: pecl package
+      - name: Upload artifacts to the release
+        uses: actions/upload-artifact@v7
+        with:
+          archive: false
+          name: igbinary-${{github.ref_name}}.tgz
+          path: igbinary-${{github.ref_name}}.tgz
