@@ -1980,9 +1980,28 @@ static ZEND_COLD int igbinary_warn_serialize_resource(zval *z) {
 	return EG(exception) != NULL;
 }
 /* }}} */
+/* {{{ igbinary_serialize_check_stack_limit */
+/** Mirrors php_serialize_check_stack_limit() in ext/standard/var.c: turns deep
+ *  recursion into a catchable Error instead of a C stack-overflow crash. No-op
+ *  on builds without the Zend stack-limit feature (PHP < 8.3). The error is
+ *  thrown directly (as PHP 8.3 core does) since zend_call_stack_size_error()
+ *  has no public declaration before 8.4. */
+static zend_always_inline bool igbinary_serialize_check_stack_limit(void) {
+#ifdef ZEND_CHECK_STACK_LIMIT
+	if (UNEXPECTED(zend_call_stack_overflowed(EG(stack_limit)))) {
+		zend_throw_error(NULL, "Maximum call stack size reached. Infinite recursion?");
+		return true;
+	}
+#endif
+	return false;
+}
+/* }}} */
 /* {{{ igbinary_serialize_zval */
 /** Serialize zval. */
 static int igbinary_serialize_zval(struct igbinary_serialize_data *igsd, zval *z) {
+	if (UNEXPECTED(igbinary_serialize_check_stack_limit())) {
+		return 1;
+	}
 	if (Z_ISREF_P(z)) {
 		if (Z_REFCOUNT_P(z) >= 2) {
 			RETURN_1_IF_NON_ZERO(igbinary_serialize8(igsd, (uint8_t)igbinary_type_ref))
